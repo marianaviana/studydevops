@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DevOps Cloud Academy</title>
+<meta name="description" content="DevOps Cloud Academy - Portal de estudos de DevOps e Cloud com laboratórios práticos.">
+<meta property="og:title" content="DevOps Cloud Academy">
+<meta property="og:description" content="Aprenda DevOps e Cloud do básico ao avançado com laboratórios práticos.">
+<meta property="og:type" content="website">
+
+<!-- Estilos e Script do Highlight.js (Tema Tokyo Night) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
 <style>
 :root{--bg:#0b1020;--panel:#131a2e;--line:#243052;--tx:#e6ebf7;--mut:#8e9bbd;--ac:#4f8cff;--ac2:#27d3a2;--warn:#ffb020}
 *{box-sizing:border-box}
@@ -33,7 +42,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
 th{color:var(--mut);font-weight:600}
 .bar{height:10px;background:#1c2644;border-radius:99px;overflow:hidden}
-.bar i{display:block;height:100%;width:6%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.bar i{display:block;height:100%;width:21%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
 .note{border-left:3px solid var(--ac2);padding:8px 12px;background:#0f1a2c;border-radius:6px;margin:12px 0}
 .hero{background:linear-gradient(135deg,#17234a,#0f2a2a);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:10px}
 a.card-link{text-decoration:none;color:inherit;display:block}
@@ -41,13 +50,36 @@ a.card-link:hover .card{border-color:var(--ac)}
 ul{padding-left:20px}
 dt{color:var(--ac2);font-weight:600;margin-top:10px}
 dd{margin:2px 0 0 0;color:#c7d0e6}
+
+/* Novos estilos para os botões */
+pre { position: relative; }
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--line); color: var(--tx);
+  border: 1px solid var(--mut); border-radius: 4px;
+  padding: 4px 10px; font-size: 11px; font-weight: bold;
+  cursor: pointer; opacity: 0; transition: all 0.2s;
+}
+pre:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { background: #27d3a2; color: #000; border-color: #27d3a2; }
+
+.btn-done {
+  display: inline-block; margin-top: 24px; padding: 12px 20px;
+  background: var(--panel); color: var(--tx);
+  border: 1px solid var(--line); border-radius: 8px;
+  cursor: pointer; font-size: 14px; font-weight: 600;
+  transition: all 0.2s; width: 100%; text-align: center;
+}
+.btn-done.active { background: #0f2a2a; border-color: #27d3a2; color: #27d3a2; }
+.btn-done:hover { border-color: #4f8cff; }
+
 @media(max-width:800px){body{flex-direction:column}.side{width:100%;height:auto;position:relative}main{padding:20px}}
 </style>
 </head>
 <body>
 <aside class="side">
   <h1>DevOps Cloud Academy</h1>
-  <input id="q" placeholder="Buscar tópicos..." autocomplete="off">
+  <input id="q" placeholder="Buscar tópicos..." autocomplete="off" aria-label="Buscar tópicos">
   <div class="res" id="res"></div>
   <nav>
     <a href="#home" data-r="home">Início</a>
@@ -412,17 +444,78 @@ Backend remoto → state no Azure Storage, com lock (seguro e compartilhado)
 `}
 
 const $=s=>document.querySelector(s);
-function render(){
-  let k=(location.hash||'#home').slice(1);
-  if(!ROUTES[k])k='home';
-  const r=ROUTES[k];
-  $('#view').innerHTML=r.f();
-  let c='<a href="#home">Início</a>';
-  r.c.forEach(x=>c+=' › '+x);
-  $('#crumbs').innerHTML=c;
-  document.querySelectorAll('.side nav a').forEach(a=>a.classList.toggle('on',a.dataset.r===k));
-  window.scrollTo(0,0);
+
+function render() {
+  let k = (location.hash || '#home').slice(1);
+  if (!ROUTES[k]) k = 'home';
+  const r = ROUTES[k];
+  $('#view').innerHTML = r.f();
+  
+  let c = '<a href="#home">Início</a>';
+  r.c.forEach(x => c += ' › ' + x);
+  $('#crumbs').innerHTML = c;
+  document.querySelectorAll('.side nav a').forEach(a => a.classList.toggle('on', a.dataset.r === k));
+  window.scrollTo(0, 0);
+
+  // --- NOVAS MELHORIAS JS ---
+
+  // 1. Preparar blocos (usando plaintext para os diagramas de mapa não quebrarem o layout)
+  document.querySelectorAll('pre').forEach(pre => {
+    if (!pre.querySelector('code')) {
+      const content = pre.innerHTML;
+      pre.innerHTML = `<code class="language-plaintext">${content}</code>`;
+    }
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerText = 'Copiar';
+    btn.onclick = () => {
+      const codeText = pre.querySelector('code').innerText;
+      navigator.clipboard.writeText(codeText.trim());
+      btn.innerText = 'Copiado!';
+      setTimeout(() => btn.innerText = 'Copiar', 2000);
+    };
+    pre.appendChild(btn);
+  });
+
+  // 2. Aplicar coloração
+  hljs.highlightAll();
+
+  // 3. Sistema de Progresso
+  if (k !== 'home') {
+    const storageKey = 'index_done_' + k;
+    const btnDone = document.createElement('button');
+    const isDone = localStorage.getItem(storageKey);
+    
+    btnDone.className = 'btn-done ' + (isDone ? 'active' : '');
+    btnDone.innerText = isDone ? '✅ Módulo Concluído' : 'Marcar como Concluído';
+    
+    btnDone.onclick = () => {
+      if (localStorage.getItem(storageKey)) {
+        localStorage.removeItem(storageKey);
+        btnDone.className = 'btn-done';
+        btnDone.innerText = 'Marcar como Concluído';
+      } else {
+        localStorage.setItem(storageKey, 'true');
+        btnDone.className = 'btn-done active';
+        btnDone.innerText = '✅ Módulo Concluído';
+      }
+      updateProgressTicks();
+    };
+    $('#view').appendChild(btnDone);
+  }
+  updateProgressTicks();
 }
+
+function updateProgressTicks() {
+  document.querySelectorAll('.side nav a[data-r]').forEach(a => {
+    const key = a.dataset.r;
+    a.innerHTML = a.innerHTML.replace(' ✅', '');
+    if (localStorage.getItem('index_done_' + key)) {
+      a.innerHTML += ' ✅';
+    }
+  });
+}
+
 window.addEventListener('hashchange',render);
 
 $('#q').addEventListener('input',e=>{
