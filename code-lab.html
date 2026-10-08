@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CODE LAB — Biblioteca de Códigos DevOps</title>
+<style>
+:root{--bg:#0b1020;--panel:#131a2e;--line:#243052;--tx:#e6ebf7;--mut:#8e9bbd;--ac:#4f8cff;--ok:#27d3a2;--bad:#ff5d6c;--warn:#ffb020}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:2}
+header b{color:var(--ok);margin-right:auto}
+header a{color:var(--mut);text-decoration:none;font-size:14px}
+header a:hover,header a.on{color:var(--tx)}
+main{max-width:980px;margin:0 auto;padding:26px 24px 60px}
+.crumbs{font-size:13px;color:var(--mut);margin-bottom:12px}
+.crumbs a{color:var(--ac);text-decoration:none}
+h2{font-size:24px;margin:0 0 8px}
+h3{font-size:18px;margin:28px 0 10px;color:var(--ok)}
+h4{font-size:15px;margin:16px 0 6px;color:var(--ac)}
+p,li{line-height:1.6;color:#c7d0e6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+a.tile{display:block;text-decoration:none;color:inherit}
+a.tile:hover .card{border-color:var(--ac)}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:99px;background:#1c2644;color:var(--ok);margin-bottom:6px}
+.soon{color:var(--mut)}
+pre{background:#0a0f1e;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:13px;line-height:1.5;color:#bfe3ff}
+code{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+td,th{border-bottom:1px solid var(--line);padding:7px;text-align:left;vertical-align:top}
+th{color:var(--mut)}
+.bad,.good,.warn{border-left:3px solid;padding:10px 14px;border-radius:6px;margin:12px 0;background:#0f1a2c}
+.bad{border-color:var(--bad)}
+.good{border-color:var(--ok)}
+.warn{border-color:var(--warn)}
+.opt{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--tx);padding:10px 12px;border-radius:8px;margin:6px 0;cursor:pointer;font-size:14px}
+.opt:hover{border-color:var(--ac)}
+.fb{min-height:24px;margin-top:8px;line-height:1.6}
+label.ck{display:block;margin:6px 0;color:#c7d0e6;font-size:14px}
+ul,ol{padding-left:20px}
+.chips span{display:inline-block;background:#1c2644;border-radius:6px;padding:4px 9px;margin:3px;font-size:13px;color:var(--mut)}
+@media(max-width:700px){main{padding:18px 14px}header{padding:12px 14px}}
+</style>
+</head>
+<body>
+<header>
+  <b>CODE LAB</b>
+  <a href="#hub" data-r="hub">Biblioteca</a>
+  <a href="#tfvm" data-r="tfvm">Terraform VM</a>
+  <a href="#plan" data-r="plan">Terraform Plan</a>
+  <a href="#cicd" data-r="cicd">CI/CD</a>
+  <a href="#k8s" data-r="k8s">Kubernetes</a>
+  <a href="#sec" data-r="sec">DevSecOps</a>
+  <a href="#inc" data-r="inc">Incidente</a>
+  <a href="index.html">← Portal teórico</a>
+</header>
+<main>
+  <div class="crumbs" id="crumbs"></div>
+  <section id="view"></section>
+</main>
+
+<script>
+function hub(){return `
+<h2>CODE LAB — Biblioteca de Códigos DevOps</h2>
+<p>Aqui o foco não é só escrever código. É aprender a <b>ler, analisar, validar, identificar riscos e investigar problemas</b> em código e configurações. Cada exemplo mostra o código, o que ele cria e o que um DevOps precisa verificar antes de aprovar.</p>
+<div class="warn"><b>Regra de ouro:</b> nunca olhe só o código. Toda configuração precisa responder: o que faz, que infraestrutura cria, qual o impacto, o que pode dar errado, o que é inseguro, o que gera custo, o que pode derrubar produção, como testar, monitorar e investigar se falhar.</div>
+
+<h3>Categorias</h3>
+<div class="grid">
+  <a class="tile" href="#tfvm"><div class="card"><span class="badge">Disponível</span><h4 style="margin-top:4px">Terraform</h4><p>VM completa com análise, e como ler o Plan.</p></div></a>
+  <a class="tile" href="#cicd"><div class="card"><span class="badge">Disponível</span><h4 style="margin-top:4px">YAML / CI/CD</h4><p>Pipeline linha por linha e análise de cada etapa.</p></div></a>
+  <a class="tile" href="#k8s"><div class="card"><span class="badge">Disponível</span><h4 style="margin-top:4px">Kubernetes</h4><p>Deployment, <code>latest</code> versus versão fixa, probes e recursos.</p></div></a>
+  <a class="tile" href="#sec"><div class="card"><span class="badge">Disponível</span><h4 style="margin-top:4px">DevSecOps</h4><p>Erros propositais: secret exposto, SSH aberto, storage público.</p></div></a>
+  <a class="tile" href="#inc"><div class="card"><span class="badge">Disponível</span><h4 style="margin-top:4px">Troubleshooting</h4><p>Incidente simulado no Kubernetes com quiz.</p></div></a>
+  <div class="card"><span class="badge soon">Em breve</span><h4 style="margin-top:4px">Docker, Azure CLI, PowerShell, Bash/Linux, Azure Policy, ARM/Bicep, Git, GitHub Actions, GitLab CI, Azure DevOps, Ansible, Networking</h4></div>
+</div>
+
+<h3>Leia como um DevOps: checklist universal</h3>
+<div class="card">
+<label class="ck"><input type="checkbox"> O que será criado?</label>
+<label class="ck"><input type="checkbox"> O que será alterado?</label>
+<label class="ck"><input type="checkbox"> O que será destruído?</label>
+<label class="ck"><input type="checkbox"> Existe impacto em produção?</label>
+<label class="ck"><input type="checkbox"> Existe risco de downtime?</label>
+<label class="ck"><input type="checkbox"> Existem secrets no código?</label>
+<label class="ck"><input type="checkbox"> Existem portas abertas?</label>
+<label class="ck"><input type="checkbox"> Existem permissões excessivas?</label>
+<label class="ck"><input type="checkbox"> Existe exposição pública?</label>
+<label class="ck"><input type="checkbox"> A configuração segue as Policies?</label>
+<label class="ck"><input type="checkbox"> Existem tags?</label>
+<label class="ck"><input type="checkbox"> Naming e região estão corretos?</label>
+<label class="ck"><input type="checkbox"> O custo é aceitável?</label>
+<label class="ck"><input type="checkbox"> Existe monitoramento?</label>
+<label class="ck"><input type="checkbox"> Existe backup?</label>
+<label class="ck"><input type="checkbox"> Existe rollback?</label>
+<label class="ck"><input type="checkbox"> O código é idempotente?</label>
+<label class="ck"><input type="checkbox"> O pipeline possui approval?</label>
+<label class="ck"><input type="checkbox"> Existem testes?</label>
+<label class="ck"><input type="checkbox"> Existem scans de segurança?</label>
+</div>
+<p style="font-size:13px;color:var(--mut)">Ainda a publicar: os outros 18 exemplos de Terraform (Resource Group, VNet, Key Vault, AKS...), a seção de Docker, Git, Azure CLI, Linux e PowerShell, e o modo entrevista.</p>
+`}
+
+function tfvm(){return `
+<h2>Terraform — VM Linux</h2>
+<p>Código de <code>azurerm_linux_virtual_machine</code>. Antes de ler a explicação, tente responder: o que este código cria e o que você revisaria?</p>
+<pre>resource "azurerm_linux_virtual_machine" "app" {
+  name                = "vm-app"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  size                = "Standard_B2s"
+
+  admin_username = "adminuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.app.id
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+}</pre>
+
+<h3>1. Linha por linha</h3>
+<table>
+<tr><th>Código</th><th>O que faz</th></tr>
+<tr><td><code>resource "azurerm_linux_virtual_machine" "app"</code></td><td>Declara uma VM Linux. "app" é o nome lógico dentro do Terraform, não o nome no Azure.</td></tr>
+<tr><td><code>name = "vm-app"</code></td><td>Nome real da VM no Azure. Mudar este campo força recriação.</td></tr>
+<tr><td><code>resource_group_name</code></td><td>Em qual Resource Group a VM fica. A referência cria uma dependência: o RG é criado antes.</td></tr>
+<tr><td><code>location</code></td><td>Região herdada do RG. Boa prática: não repetir a região em cada recurso.</td></tr>
+<tr><td><code>size = "Standard_B2s"</code></td><td>Tamanho: 2 vCPUs e memória em modo burstable. Bom para dev/teste.</td></tr>
+<tr><td><code>admin_username</code></td><td>Usuário administrador. "adminuser" é previsível e um alvo fácil.</td></tr>
+<tr><td><code>network_interface_ids</code></td><td>Conecta a VM à rede por meio de uma NIC. Sem NIC, a VM não tem conectividade.</td></tr>
+<tr><td><code>os_disk.caching = "ReadWrite"</code></td><td>Cache do disco do sistema operacional. ReadWrite é o padrão para o SO.</td></tr>
+<tr><td><code>storage_account_type = "Standard_LRS"</code></td><td>Tipo de disco com redundância local (LRS): cópias só dentro do datacenter.</td></tr>
+</table>
+
+<div class="bad"><b>⚠️ Este código não aplicaria como está.</b> Faltam <code>source_image_reference</code> (imagem do SO) e a autenticação (<code>admin_ssh_key</code> ou <code>admin_password</code>). Os recursos <code>azurerm_resource_group.main</code> e <code>azurerm_network_interface.app</code> também não estão no trecho. Um DevOps percebe isso na validação, antes do plan.</div>
+
+<h3>2. O que esse código cria</h3>
+<pre>Resource Group
+   └── VM Linux "vm-app"  (Standard_B2s)
+          ├── NIC  →  Subnet  →  VNet
+          └── Disco do SO (Standard_LRS)</pre>
+
+<h3>3. O DevOps deve analisar</h3>
+<div class="grid">
+<div class="card"><h4>Infraestrutura</h4><ul>
+<li>Qual VM? Em qual RG?</li><li>Qual região?</li><li>B2s é adequado para produção? Não: é burstable e sofre throttling com CPU sustentada.</li></ul></div>
+<div class="card"><h4>Rede</h4><ul>
+<li>Qual NIC e qual subnet?</li><li>Existe NSG associado?</li><li>A VM tem IP público?</li><li>Quais portas estão expostas?</li></ul></div>
+<div class="card"><h4>Segurança</h4><ul>
+<li>Existe senha ou secret hardcoded?</li><li>Acesso via Managed Identity ou chave SSH?</li><li>"adminuser" está adequado? Prefira login via Entra ID.</li></ul></div>
+<div class="card"><h4>Custo</h4><ul>
+<li>A VM fica ligada 24/7?</li><li>Há desligamento automático fora do horário?</li><li>O tamanho está superdimensionado?</li></ul></div>
+<div class="card"><h4>Governança</h4><ul>
+<li>Possui tags (owner, environment, cost-center)?</li><li>O naming segue o padrão?</li><li>A região é permitida pela Azure Policy?</li></ul></div>
+<div class="card"><h4>Disaster Recovery</h4><ul>
+<li>Existe backup (Azure Backup)?</li><li>Uma VM única é ponto único de falha.</li><li>Terraform recria a VM, mas não recupera dados do disco.</li></ul></div>
+<div class="card"><h4>Operacional</h4><ul>
+<li>Como monitorar CPU e disco?</li><li>Como acessar: Bastion ou SSH aberto?</li><li>Como aplicar patches?</li><li>Como investigar falha: boot diagnostics e serial console.</li></ul></div>
+</div>
+
+<h3>4. Riscos, erros, testes e troubleshooting</h3>
+<div class="card"><ul>
+<li><b>Possíveis erros:</b> referência a recurso inexistente; senha fora da política de complexidade; tamanho indisponível na região.</li>
+<li><b>Como testar:</b> <code>terraform fmt -check</code>, <code>terraform validate</code>, <code>tflint</code>, <code>checkov -d .</code> e revisão do <code>terraform plan</code>.</li>
+<li><b>Como investigar:</b> <code>az vm show -g rg-app -n vm-app --query provisioningState</code> e <code>az vm boot-diagnostics get-boot-log</code>.</li>
+<li><b>O que pode quebrar em produção:</b> alterar <code>name</code> força recriação e perda do disco. Trocar a NIC pode cortar o acesso.</li>
+<li><b>Como melhorar:</b> <code>disable_password_authentication = true</code>, <code>identity { type = "SystemAssigned" }</code>, <code>zone = "1"</code> e tags obrigatórias.</li>
+</ul></div>
+`}
+
+function plan(){return `
+<h2>Como ler um Terraform Plan</h2>
+<p>O <code>terraform plan</code> mostra o que será feito <b>antes</b> de tocar na nuvem. Saber lê-lo é a principal habilidade de revisão de mudanças.</p>
+<table>
+<tr><th>Símbolo</th><th>Nome</th><th>Significado</th></tr>
+<tr><td><code>+</code></td><td>create</td><td>Recurso novo será criado.</td></tr>
+<tr><td><code>~</code></td><td>update in-place</td><td>Recurso existe e será alterado sem ser recriado.</td></tr>
+<tr><td><code>-</code></td><td>destroy</td><td>Recurso será removido.</td></tr>
+<tr><td><code>-/+</code></td><td>replace</td><td>Será destruído e criado de novo (geralmente "forces replacement").</td></tr>
+<tr><td><code>&lt;=</code></td><td>read</td><td>Data source sendo lido. Não altera nada.</td></tr>
+</table>
+
+<h3>Exemplo (simulado)</h3>
+<pre>  # azurerm_linux_virtual_machine.app must be replaced
+-/+ resource "azurerm_linux_virtual_machine" "app" {
+      ~ name = "vm-app" -> "vm-app-v2"   # forces replacement
+      ~ size = "Standard_B2s" -> "Standard_D4s_v5"
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.</pre>
+
+<h3>Situação perigosa</h3>
+<div class="bad"><b>⚠️ Plan: 0 to add, 5 to change, 3 to destroy</b><br>3 recursos serão destruídos. <b>Antes de aprovar, descubra POR QUE esses recursos serão destruídos.</b></div>
+<div class="card"><h4>Investigação</h4><ol>
+<li>Qual recurso e qual campo causaram o destroy? Procure "forces replacement".</li>
+<li>Algum deles guarda dados (banco, disco, storage)? Destruir significa perder dados.</li>
+<li>Foi renomeação? Use um bloco <code>moved</code> em vez de destroy + create.</li>
+<li>Alguém alterou algo manualmente no portal? Isso é drift: o state não reflete a nuvem.</li>
+<li>Há <code>lifecycle { prevent_destroy = true }</code> nos recursos críticos?</li>
+</ol></div>
+
+<h3>Checklist antes de aprovar</h3>
+<div class="card">
+<label class="ck"><input type="checkbox"> O que será criado?</label>
+<label class="ck"><input type="checkbox"> O que será alterado?</label>
+<label class="ck"><input type="checkbox"> O que será destruído?</label>
+<label class="ck"><input type="checkbox"> Há produção envolvida?</label>
+<label class="ck"><input type="checkbox"> Existe downtime?</label>
+<label class="ck"><input type="checkbox"> Existe mudança de rede?</label>
+<label class="ck"><input type="checkbox"> Existe mudança de segurança?</label>
+<label class="ck"><input type="checkbox"> Existe alteração de banco?</label>
+<label class="ck"><input type="checkbox"> Existe impacto financeiro?</label>
+</div>
+`}
+
+function cicd(){return `
+<h2>YAML / CI/CD — GitHub Actions</h2>
+<pre>name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build</pre>
+
+<h3>Linha por linha</h3>
+<table>
+<tr><th>Linha</th><th>O que faz</th></tr>
+<tr><td><code>name</code></td><td>Nome do workflow, exibido na interface do GitHub.</td></tr>
+<tr><td><code>on: push: branches: main</code></td><td>Gatilho: executa a cada push na branch main.</td></tr>
+<tr><td><code>jobs: build:</code></td><td>Define um job chamado build. Jobs rodam em máquinas separadas.</td></tr>
+<tr><td><code>runs-on: ubuntu-latest</code></td><td>Runner hospedado pelo GitHub. "latest" muda de versão com o tempo.</td></tr>
+<tr><td><code>uses: actions/checkout@v4</code></td><td>Baixa o código do repositório. Action de terceiros, com versão fixada.</td></tr>
+<tr><td><code>run: npm install</code></td><td>Instala dependências. Pode alterar o lockfile.</td></tr>
+<tr><td><code>run: npm test</code></td><td>Roda os testes. Se falhar, o job para e nada é gerado.</td></tr>
+<tr><td><code>run: npm run build</code></td><td>Gera a aplicação para entrega.</td></tr>
+</table>
+
+<h3>O DevOps analisa nessa pipeline</h3>
+<div class="grid">
+<div class="card"><h4>Trigger</h4><ul><li>Executa a cada push na main, inclusive merges diretos.</li><li>A main tem branch protection? Sem ela, qualquer um dispara o pipeline.</li></ul></div>
+<div class="card"><h4>Build</h4><ul><li>Qual versão do Node? O <code>setup-node</code> não aparece.</li><li>Prefira <code>npm ci</code>, que respeita o lockfile.</li></ul></div>
+<div class="card"><h4>Security</h4><ul><li>Existem secrets? Não há nenhum aqui, o que é bom.</li><li>Não há secret scanning, SAST nem scan de dependências.</li></ul></div>
+<div class="card"><h4>Test</h4><ul><li>Os testes cobrem o essencial? Há cobertura mínima?</li><li>Falha no teste interrompe o job: comportamento correto.</li></ul></div>
+<div class="card"><h4>Artifact</h4><ul><li>Não há <code>upload-artifact</code>.</li><li>O que foi testado não é necessariamente o que será entregue. Sem artifact versionado, não há reprodução.</li></ul></div>
+<div class="card"><h4>Deploy</h4><ul><li>Não existe deploy neste arquivo.</li><li>Faltam ambiente de homologação, approval em produção e plano de rollback.</li></ul></div>
+<div class="card"><h4>Permissions</h4><ul><li>Não há bloco <code>permissions:</code>. O GITHUB_TOKEN pode ter escrita por padrão.</li><li>Defina <code>contents: read</code>.</li></ul></div>
+</div>
+
+<h3>Versão melhor</h3>
+<pre>name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-\${{ github.sha }}
+          path: dist/        # ajuste ao diretório real de saída
+
+  deploy-prod:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: production  # exige aprovação configurada no repositório
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-\${{ github.sha }}
+      # deploy aqui, com credenciais via OIDC (sem senha armazenada)</pre>
+<div class="good"><b>Por que é melhor:</b> versão fixada, <code>npm ci</code> reproduzível, permissões mínimas, artifact ligado ao commit (<code>github.sha</code>) e produção protegida por <code>environment</code> com aprovação.</div>
+`}
+
+function k8s(){return `
+<h2>Kubernetes — Deployment</h2>
+<pre>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: nginx:latest
+          ports:
+            - containerPort: 80</pre>
+
+<h3>Linha por linha</h3>
+<table>
+<tr><th>Linha</th><th>O que faz</th></tr>
+<tr><td><code>apiVersion: apps/v1</code></td><td>Versão da API para Deployments.</td></tr>
+<tr><td><code>kind: Deployment</code></td><td>Tipo do objeto: mantém um número desejado de Pods rodando.</td></tr>
+<tr><td><code>metadata.name</code></td><td>Nome do objeto no namespace.</td></tr>
+<tr><td><code>spec.replicas: 3</code></td><td>Quantos Pods manter. Se um cair, o Kubernetes cria outro.</td></tr>
+<tr><td><code>selector.matchLabels</code></td><td>Como o Deployment encontra os Pods que gerencia. Precisa bater com o <code>template.labels</code>.</td></tr>
+<tr><td><code>template</code></td><td>Modelo do Pod que será criado.</td></tr>
+<tr><td><code>image: nginx:latest</code></td><td>Imagem do container. <code>latest</code> não é uma versão.</td></tr>
+<tr><td><code>containerPort: 80</code></td><td>Porta que o container usa. Informativo: não publica nada sozinho, quem expõe é o Service.</td></tr>
+</table>
+
+<h3>O DevOps deve analisar</h3>
+<ul>
+<li><b>replicas:</b> 3 Pods podem cair no mesmo nó. Sem topology spread ou anti-affinity, um nó caído derruba todos.</li>
+<li><b>image e tag:</b> <code>latest</code> impede saber qual versão está rodando.</li>
+<li><b>resource requests e limits:</b> ausentes. O scheduler não sabe quanto reservar, e um Pod pode consumir o nó inteiro.</li>
+<li><b>probes:</b> ausentes. O Kubernetes não sabe se a app está pronta, então o tráfego pode chegar antes.</li>
+<li><b>securityContext:</b> ausente. O container pode rodar como root.</li>
+<li><b>secrets e configmaps:</b> nenhum. A configuração está embutida ou ausente?</li>
+<li><b>Service, Ingress e networking:</b> sem Service, não há endereço estável para acessar os Pods.</li>
+<li><b>autoscaling e availability:</b> sem HPA e sem PodDisruptionBudget, uma manutenção do nó pode derrubar tudo.</li>
+</ul>
+
+<h3>Ruim versus melhor</h3>
+<table>
+<tr><th>Aspecto</th><th>Ruim</th><th>Melhor</th></tr>
+<tr><td>Imagem</td><td><code>image: nginx:latest</code></td><td><code>image: nginx:1.27.1</code></td></tr>
+<tr><td>Recursos</td><td>nenhum</td><td><code>requests</code> e <code>limits</code> definidos</td></tr>
+<tr><td>Saúde</td><td>nenhuma probe</td><td><code>readinessProbe</code> e <code>livenessProbe</code></td></tr>
+</table>
+<div class="bad"><b>Por que <code>latest</code> é ruim:</b> ele aponta para a última imagem publicada. Dois Pods podem puxar versões diferentes se a tag mudar no meio do deploy. Um <code>kubectl rollout undo</code> volta o manifesto, mas a tag <code>latest</code> pode apontar para outra imagem, então o rollback não é garantido.</div>
+
+<h3>Versão melhor</h3>
+<pre>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      securityContext:
+        # runAsNonRoot: true  exige imagem sem root (ex.: nginx-unprivileged)
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { memory: 256Mi }
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false</pre>
+
+<div class="card"><h4>Próximos objetos a estudar aqui</h4>
+<div class="chips"><span>Service</span><span>Ingress</span><span>ConfigMap</span><span>Secret</span><span>Namespace</span><span>StatefulSet</span><span>HPA</span><span>PersistentVolume</span><span>PersistentVolumeClaim</span></div>
+</div>
+`}
+
+function sec(){return `
+<h2>DevSecOps — Code review com erros propositais</h2>
+<p>Cada exemplo é um erro comum. Identifique o problema, o risco e a correção antes de ler a resposta.</p>
+
+<h3>1. Secret hardcoded</h3>
+<pre>env:
+  AZURE_PASSWORD: "MinhaSenha123"</pre>
+<div class="bad"><b>❌ PROBLEMA:</b> senha em texto puro no repositório.</div>
+<pre>RISCO
+  ↓
+Credencial exposta (fica no histórico do Git para sempre)
+  ↓
+Possível comprometimento da conta ou do serviço
+  ↓
+Incidente de segurança + rotação emergencial</pre>
+<div class="good"><b>✅ Correção:</b> sem senha. Use OIDC (federated credential) com <code>permissions: id-token: write</code> e <code>azure/login</code>, guardando apenas IDs não sensíveis em <code>secrets</code>. Ative secret scanning (ex.: gitleaks) no pipeline.</div>
+
+<h3>2. NSG permitindo 0.0.0.0/0 na porta 22</h3>
+<pre>security_rule {
+  name                       = "SSH"
+  priority                   = 100
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_range     = "22"
+  source_address_prefix      = "0.0.0.0/0"   # qualquer IP da Internet
+  destination_address_prefix = "*"
+}</pre>
+<div class="bad"><b>❌ PROBLEMA:</b> SSH aberto para toda a Internet.</div>
+<pre>RISCO
+  ↓
+Brute force e exploração de vulnerabilidades no SSH
+  ↓
+Acesso à VM
+  ↓
+Movimento lateral na VNet</pre>
+<div class="good"><b>✅ Correção:</b> remova a regra pública. Use Azure Bastion ou acesso just-in-time (Defender for Cloud). Se for inevitável, restrinja <code>source_address_prefix</code> ao IP corporativo. Adicione uma Policy que faça Deny de 0.0.0.0/0 nas portas 22 e 3389.</div>
+
+<h3>3. Storage público</h3>
+<pre>resource "azurerm_storage_account" "dados" {
+  name                              = "stdadosprod01"
+  resource_group_name               = azurerm_resource_group.main.name
+  location                          = azurerm_resource_group.main.location
+  account_tier                      = "Standard"
+  account_replication_type          = "LRS"
+  allow_nested_items_to_be_public   = true   # ❌
+  min_tls_version                   = "TLS1_0"  # ❌
+}</pre>
+<div class="bad"><b>❌ PROBLEMA:</b> containers podem ser acessados anonimamente e a versão de TLS é antiga.</div>
+<pre>RISCO
+  ↓
+Blobs listados e baixados por qualquer pessoa
+  ↓
+Vazamento de dados (impacto em LGPD)
+  ↓
+Incidente reportável</pre>
+<div class="good"><b>✅ Correção:</b> <code>allow_nested_items_to_be_public = false</code> e <code>min_tls_version = "TLS1_2"</code>. Adicione uma Policy com Deny para contas com acesso público.</div>
+
+<h3>Próximos exemplos</h3>
+<div class="card"><div class="chips"><span>Container rodando como root</span><span>Permissões excessivas</span><span>Pipeline sem approval</span><span>Terraform destroy perigoso</span><span>Imagem Docker vulnerável</span><span>Dependência desatualizada</span></div></div>
+`}
+
+function inc(){return `
+<h2>Troubleshooting — Incidente 01</h2>
+<div class="card"><b>Cenário:</b> "Aplicação está fora do ar."</div>
+<pre>$ kubectl get pods
+NAME                     READY   STATUS             RESTARTS
+app-7f8d9c6b4f-x2abc     0/1     CrashLoopBackOff   8</pre>
+
+<h3>O que você faria agora?</h3>
+<button class="opt" onclick="ans(0)">A) Reiniciar o computador</button>
+<button class="opt" onclick="ans(1)">B) Deletar o cluster</button>
+<button class="opt" onclick="ans(2)">C) Verificar logs</button>
+<button class="opt" onclick="ans(3)">D) Aumentar CPU</button>
+<div class="fb" id="fb"></div>
+
+<h3>Passo 1: logs do container que travou</h3>
+<pre>kubectl logs app-7f8d9c6b4f-x2abc --previous</pre>
+<p><code>--previous</code> mostra o log da execução anterior, que morreu. Sem ele, você pode ver só a tentativa atual, que ainda pode estar vazia.</p>
+<pre>Starting application...
+Loading configuration...
+Error: environment variable DATABASE_URL is not set
+Process exited with code 1</pre>
+
+<h3>Passo 2: describe do Pod</h3>
+<pre>kubectl describe pod app-7f8d9c6b4f-x2abc
+
+State:          Waiting
+  Reason:       CrashLoopBackOff
+Last State:     Terminated
+  Reason:       Error
+  Exit Code:    1
+Events:
+  Warning  BackOff  Back-off restarting failed container</pre>
+
+<h3>Passo 3: raciocínio completo</h3>
+<pre>SINTOMA       app fora do ar, Pod reiniciando (8 vezes)
+  ↓
+ESTADO        CrashLoopBackOff: o container inicia e morre em loop
+  ↓
+EVIDÊNCIA     exit code 1 + log "DATABASE_URL is not set"
+  ↓
+HIPÓTESE      configuração ausente: ConfigMap ou Secret não referenciado
+  ↓
+PRÓXIMO       kubectl get configmap,secret
+PASSO         kubectl describe deployment app  (comparar env com o esperado)
+  ↓
+CORREÇÃO      ajustar o manifesto no Git e reaplicar pelo pipeline
+  ↓
+ROLLBACK?     se a mudança recente causou o erro: kubectl rollout undo deployment/app
+  ↓
+VALIDAÇÃO     kubectl rollout status deployment/app  →  READY 1/1</pre>
+
+<div class="warn"><b>Por que as outras opções estão erradas:</b><br>
+A) Seu computador não controla os Pods do cluster. Reiniciá-lo não muda nada.<br>
+B) Ação destrutiva e desproporcional: apaga tudo sem diagnóstico e pode causar um incidente maior.<br>
+D) CrashLoopBackOff raramente é falta de CPU. Se a aplicação falha ao iniciar, mais CPU não corrige a causa.</div>
+
+<h3>Outros cenários para praticar</h3>
+<div class="card"><div class="chips"><span>ImagePullBackOff</span><span>Pending</span><span>OOMKilled</span><span>Service sem acesso</span><span>Ingress com erro</span><span>DNS interno</span><span>ConfigMap incorreto</span><span>Secret incorreto</span><span>Falta de recursos</span><span>Readiness probe falhando</span></div></div>
+`}
+
+const FB=[
+ '<span style="color:var(--bad)">❌ Não. Seu computador local não controla os Pods do cluster. Reiniciá-lo não diagnostica nada.</span>',
+ '<span style="color:var(--bad)">❌ Não. Ação destrutiva sem diagnóstico. Você apagaria o ambiente sem entender a causa.</span>',
+ '<span style="color:var(--ok)">✅ Correto. CrashLoopBackOff significa que o container morre repetidamente. O log mostra o motivo.</span>',
+ '<span style="color:var(--bad)">❌ Não. Mais CPU não corrige um erro de inicialização. Descubra a causa antes de ajustar recursos.</span>'
+];
+function ans(i){document.getElementById('fb').innerHTML=FB[i];}
+
+const R={
+ hub:{t:'Biblioteca',c:[],f:hub},
+ tfvm:{t:'Terraform',c:['Terraform','VM Linux'],f:tfvm},
+ plan:{t:'Terraform Plan',c:['Terraform','Como ler o Plan'],f:plan},
+ cicd:{t:'YAML / CI/CD',c:['YAML / CI/CD'],f:cicd},
+ k8s:{t:'Kubernetes',c:['Kubernetes','Deployment'],f:k8s},
+ sec:{t:'DevSecOps',c:['DevSecOps'],f:sec},
+ inc:{t:'Troubleshooting',c:['Troubleshooting','Incidente 01'],f:inc}
+};
+
+function render(){
+  let k=(location.hash||'#hub').slice(1);
+  if(!R[k])k='hub';
+  const r=R[k];
+  document.getElementById('view').innerHTML=r.f();
+  let c='<a href="#hub">CODE LAB</a>';
+  r.c.forEach(x=>c+=' › '+x);
+  document.getElementById('crumbs').innerHTML=c;
+  document.querySelectorAll('header a[data-r]').forEach(a=>a.classList.toggle('on',a.dataset.r===k));
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+render();
+</script>
+</body>
+</html>

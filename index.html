@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DevOps Cloud Academy</title>
+<style>
+:root{--bg:#0b1020;--panel:#131a2e;--line:#243052;--tx:#e6ebf7;--mut:#8e9bbd;--ac:#4f8cff;--ac2:#27d3a2;--warn:#ffb020}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+.side{width:250px;background:var(--panel);border-right:1px solid var(--line);padding:20px;position:sticky;top:0;height:100vh;overflow:auto;flex-shrink:0}
+.side h1{font-size:16px;margin:0 0 14px;color:var(--ac2)}
+.side input{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font-size:14px}
+.res{margin-top:8px}
+.res a{display:block;padding:8px;color:var(--tx);text-decoration:none;border-radius:6px;font-size:13px}
+.res a:hover{background:#1c2644}
+.side nav{margin-top:16px}
+.side nav a{display:block;padding:8px 10px;border-radius:8px;color:var(--mut);text-decoration:none;margin:2px 0;font-size:14px}
+.side nav a.on,.side nav a:hover{background:#1c2644;color:var(--tx)}
+main{flex:1;padding:28px 36px;min-width:0}
+.crumbs{font-size:13px;color:var(--mut);margin-bottom:14px}
+.crumbs a{color:var(--ac);text-decoration:none}
+h2{font-size:24px;margin:0 0 6px}
+h3{font-size:18px;margin:28px 0 10px;color:var(--ac2)}
+p,li{line-height:1.6;color:#c7d0e6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:99px;margin:0 6px 6px 0;background:#1c2644;color:var(--ac2)}
+.b-int{color:var(--ac)}.b-adv{color:var(--warn)}.b-soon{color:var(--mut)}
+pre{background:#0a0f1e;border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;color:#bfe3ff}
+.chips span{display:inline-block;background:#1c2644;border-radius:6px;padding:4px 9px;margin:3px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600}
+.bar{height:10px;background:#1c2644;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:6%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.note{border-left:3px solid var(--ac2);padding:8px 12px;background:#0f1a2c;border-radius:6px;margin:12px 0}
+.hero{background:linear-gradient(135deg,#17234a,#0f2a2a);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:10px}
+a.card-link{text-decoration:none;color:inherit;display:block}
+a.card-link:hover .card{border-color:var(--ac)}
+ul{padding-left:20px}
+dt{color:var(--ac2);font-weight:600;margin-top:10px}
+dd{margin:2px 0 0 0;color:#c7d0e6}
+@media(max-width:800px){body{flex-direction:column}.side{width:100%;height:auto;position:relative}main{padding:20px}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <h1>DevOps Cloud Academy</h1>
+  <input id="q" placeholder="Buscar tópicos..." autocomplete="off">
+  <div class="res" id="res"></div>
+  <nav>
+    <a href="#home" data-r="home">Início</a>
+    <a href="#azure" data-r="azure">Azure</a>
+    <a href="#policy" data-r="policy">Azure Policy</a>
+    <a href="#tf" data-r="tf">Terraform / IaC</a>
+    <a href="code-lab.html">CODE LAB →</a>
+  </nav>
+</aside>
+<main>
+  <div class="crumbs" id="crumbs"></div>
+  <section id="view"></section>
+</main>
+
+<script>
+const IDX=[
+{t:'Azure Networking: VNet, Subnets, NSG, Private Endpoint, Firewall',r:'azure',k:'dns vnet subnet nsg private endpoint firewall vpn peering load balancer rota ip'},
+{t:'Azure Identity: Entra ID, RBAC, Managed Identity',r:'azure',k:'entra usuario grupo service principal managed identity rbac token autenticacao autorizacao'},
+{t:'Azure Compute: VM, App Service, AKS',r:'azure',k:'vm scale set app service container aks kubernetes'},
+{t:'Azure Configuration: App Configuration, Key Vault, Secrets',r:'azure',k:'key vault secrets app configuration variaveis ambiente certificado'},
+{t:'Azure Integration: Service Bus, Queues, Topics',r:'azure',k:'service bus queue topic subscription mensagem produtor consumidor'},
+{t:'Azure SQL: firewall, private endpoint, backup',r:'azure',k:'sql database backup alta disponibilidade conexao'},
+{t:'Azure Governance: Tenant, Management Group, Tags',r:'azure',k:'tenant management group subscription resource group tags compliance'},
+{t:'Azure Policy: Deny, Audit, Modify, DeployIfNotExists',r:'policy',k:'policy definition assignment initiative compliance audit deny modify rbac'},
+{t:'Terraform / IaC: state, backend, plan, apply, modules',r:'tf',k:'iac terraform provider resource variable output local module state backend plan apply destroy import workspace'}
+];
+
+const ROUTES={
+home:{t:'Início',c:[],f:()=>homeHTML()},
+azure:{t:'Azure',c:['Azure'],f:()=>azureHTML()},
+policy:{t:'Azure Policy',c:['Azure','Azure Policy'],f:()=>policyHTML()},
+tf:{t:'Terraform / IaC',c:['Terraform / IaC'],f:()=>tfHTML()}
+};
+
+function homeHTML(){return `
+<div class="hero">
+  <h2>Aprenda DevOps e Cloud do básico ao avançado</h2>
+  <p>Um portal visual: cada conceito vem com diagrama para você enxergar como as peças se conectam.</p>
+  <p style="margin:14px 0 6px;color:var(--mut);font-size:13px">Progresso de estudos (módulos publicados: 3 de 14)</p>
+  <div class="bar"><i style="width:21%"></i></div>
+</div>
+
+<h3>O fluxo do universo DevOps</h3>
+<pre>
+DESENVOLVIMENTO
+      ↓
+     GIT
+      ↓
+   CI/CD
+      ↓
+BUILD → TEST → SECURITY → APPROVAL
+      ↓
+   ARTIFACT
+      ↓
+  DEPLOYMENT
+      ↓
+KUBERNETES / VM / APP
+      ↓
+    CLOUD
+      ↓
+MONITORAMENTO / LOGS
+      ↓
+INCIDENTES / TROUBLESHOOTING
+</pre>
+
+<h3>Mapa das áreas</h3>
+<div class="grid">
+  <div class="card"><b>CLOUD</b><pre style="margin-top:10px">├── Azure
+│   ├── Networking
+│   ├── Compute
+│   ├── Security
+│   ├── Database
+│   ├── Integration
+│   └── Governance
+├── AWS
+├── Google Cloud
+└── IBM Cloud</pre></div>
+  <div class="card"><b>DEVOPS</b><pre style="margin-top:10px">├── Git
+├── CI/CD
+├── IaC
+├── Containers
+├── Kubernetes
+├── DevSecOps
+├── Monitoring
+└── Automation</pre></div>
+</div>
+
+<h3>Áreas de estudo</h3>
+<div class="grid">
+  <a class="card-link" href="#azure"><div class="card"><span class="badge b-int">Intermediário</span><h3 style="margin-top:6px">Azure</h3><p>Rede, identidade, compute, segurança, integração, SQL e governança.</p></div></a>
+  <a class="card-link" href="#policy"><div class="card"><span class="badge b-int">Intermediário</span><h3 style="margin-top:6px">Azure Policy</h3><p>Como a nuvem impede ou audita o que não pode ser criado.</p></div></a>
+  <a class="card-link" href="#tf"><div class="card"><span class="badge">Básico → Intermediário</span><h3 style="margin-top:6px">Terraform / IaC</h3><p>Infraestrutura como código: state, plan, apply e módulos.</p></div></a>
+  <div class="card"><span class="badge b-soon">Em breve</span><h3 style="margin-top:6px">Kubernetes, CI/CD, DevSecOps, AWS, GCP, IBM</h3><p>Próximos módulos.</p></div>
+</div>
+
+<h3>Relação entre as tecnologias</h3>
+<pre>
+Código ──(Git)──→ Pipeline CI/CD ──→ Artifact
+                        │
+                        ▼
+Terraform (IaC) ──→ Cloud (Azure) ──→ Azure Policy (regras)
+                        │                  │
+                        ▼                  ▼
+              Recursos (VM, AKS, SQL)   Compliance / Bloqueio
+                        │
+                        ▼
+              Monitoramento / Logs ──→ Incidentes
+</pre>
+
+<h3>O que estudar depois?</h3>
+<div class="card"><ol style="padding-left:20px;line-height:1.8;color:#c7d0e6">
+<li>Azure Networking e Identity (base de tudo na nuvem).</li>
+<li>Terraform / IaC (para criar a infraestrutura com código).</li>
+<li>Azure Policy (para governar o que o Terraform pode criar).</li>
+<li>CI/CD e Git (para automatizar a entrega).</li>
+<li>Containers e Kubernetes (para rodar as aplicações).</li>
+<li>Monitoramento, logs e troubleshooting (para operar em produção).</li>
+</ol></div>
+
+<h3>Glossário</h3>
+<div class="card"><dl>
+<dt>IaC</dt><dd>Infrastructure as Code: descrever a infraestrutura em arquivos versionados.</dd>
+<dt>RBAC</dt><dd>Controle de acesso por papel: quem pode fazer o quê.</dd>
+<dt>Service Principal</dt><dd>Identidade de aplicação ou automação no Entra ID.</dd>
+<dt>Managed Identity</dt><dd>Identidade gerenciada pela Azure, sem senha para você guardar.</dd>
+<dt>NSG</dt><dd>Network Security Group: regras de entrada e saída de tráfego.</dd>
+<dt>Private Endpoint</dt><dd>Um IP privado dentro da sua VNet que dá acesso a um serviço PaaS.</dd>
+<dt>State (Terraform)</dt><dd>Arquivo que mapeia o código aos recursos reais na nuvem.</dd>
+</dl></div>
+`}
+
+function azureHTML(){return `
+<h2>Azure</h2>
+<p>Organizado por categoria. Clique nos módulos para ir ao conteúdo detalhado conforme forem publicados.</p>
+
+<h3>Networking</h3>
+<div class="chips"><span>DNS</span><span>VNet</span><span>Subnets</span><span>NSG</span><span>Private Endpoint</span><span>Private Link</span><span>Firewall</span><span>Load Balancer</span><span>Application Gateway</span><span>VPN</span><span>Peering</span><span>Rotas</span><span>IPs públicos e privados</span></div>
+<pre>
+Internet
+   ↓
+  DNS
+   ↓
+Firewall
+   ↓
+VNet
+├── Subnet
+│     ├── VM
+│     └── Application
+│
+└── Private Endpoint
+        ↓
+Azure SQL / Key Vault / Storage
+</pre>
+<div class="note"><b>Como ler:</b> o caminho sai da Internet e passa pelo DNS (resolve o nome) e pelo Firewall (filtra). Dentro da VNet, as Subnets isolam as cargas, e o NSG filtra o tráfego de cada subnet. O <b>Private Endpoint</b> é o ponto de entrada privado para serviços como SQL, Key Vault e Storage: a aplicação fala com um IP interno, não com o endereço público do serviço.</div>
+<ul>
+<li><b>Público:</b> IPs públicos e endpoints acessíveis pela Internet.</li>
+<li><b>Privado:</b> IPs da VNet e Private Endpoints, acessíveis só dentro da rede.</li>
+<li><b>NSG:</b> filtra por subnet ou NIC. <b>Firewall:</b> filtra o tráfego entre redes e para a Internet, com regras centralizadas.</li>
+</ul>
+
+<h3>Identity (Entra ID)</h3>
+<pre>
+Usuário
+   ↓
+Entra ID  (autentica: "quem é você?")
+   ↓
+Token
+   ↓
+Azure Resource
+   ↓
+RBAC  (autoriza: "o que você pode fazer?")
+   ↓
+Permissão
+</pre>
+<p>Principais conceitos: <b>usuários</b>, <b>grupos</b>, <b>service principals</b> (identidade de aplicação) e <b>managed identities</b> (identidade gerenciada, sem senha no código).</p>
+
+<h3>Compute</h3>
+<div class="chips"><span>Virtual Machines</span><span>VM Scale Sets</span><span>App Services</span><span>Containers</span><span>Kubernetes / AKS</span></div>
+<pre>
+Carga de trabalho
+  ├── VM              → você controla o SO
+  ├── VM Scale Set    → várias VMs iguais, escalando sozinhas
+  ├── App Service     → você só publica o código
+  ├── Containers      → imagem empacotada
+  └── AKS             → orquestra containers (Kubernetes)
+</pre>
+
+<h3>Security</h3>
+<div class="chips"><span>Key Vault</span><span>Managed Identity</span><span>NSG</span><span>Firewall</span><span>Defender</span><span>Azure Policy</span></div>
+
+<h3>Configuração: App Configuration × Key Vault</h3>
+<p>Ambos guardam valores para a aplicação, mas com finalidades diferentes.</p>
+<pre>
+Código
+   ↓
+App Configuration
+   ↓
+Configurações  (URLs, flags, parâmetros não sensíveis)
+
+Código
+   ↓
+Key Vault
+   ↓
+Secrets / Passwords / Certificates  (dados sensíveis)
+</pre>
+
+<h3>Integration (mensageria)</h3>
+<p><b>Fila (Queue):</b> uma mensagem é consumida por um consumidor.</p>
+<pre>
+Application A
+      ↓
+ Service Bus
+      ↓
+    Queue
+      ↓
+Application B
+</pre>
+<p><b>Tópico (Topic):</b> uma mensagem é entregue a várias subscriptions.</p>
+<pre>
+Producer
+   ↓
+ Topic
+   ├── Subscription A
+   ├── Subscription B
+   └── Subscription C
+</pre>
+
+<h3>Azure SQL</h3>
+<p>Conceitos: database, conexão, firewall, private endpoint, autenticação, segurança, backup e alta disponibilidade.</p>
+<pre>
+Aplicação
+   ↓
+Rede (VNet / Subnet)
+   ↓
+Private Endpoint  (IP privado)
+   ↓
+Azure SQL  (autenticação + backup + HA)
+</pre>
+
+<h3>Governance</h3>
+<pre>
+Tenant
+  ↓
+Management Group
+  ↓
+Subscription
+  ↓
+Resource Group
+  ↓
+Resources
+
+      Azure Policy atua aqui: regras aplicadas
+      em Management Group, Subscription ou RG,
+      e herdadas pelos níveis abaixo.
+</pre>
+<p>Também: Tags (metadados para custo e organização) e Compliance (o quanto os recursos cumprem as políticas). Veja o módulo <a href="#policy" style="color:var(--ac)">Azure Policy</a>.</p>
+`}
+
+function policyHTML(){return `
+<h2>Azure Policy</h2>
+<p><b>O que é:</b> um serviço que define regras sobre como os recursos podem ser criados e configurados. <b>Por que existe:</b> para garantir padrões de segurança, custo e localização, mesmo quando muitas pessoas e pipelines criam recursos.</p>
+
+<div class="note"><b>Diferença essencial:</b><br>
+<b>Azure RBAC</b> = "QUEM pode fazer?"<br>
+<b>Azure Policy</b> = "O QUE pode ser criado/configurado?"</div>
+
+<h3>Fluxo visual</h3>
+<pre>
+Developer
+    ↓
+Terraform
+    ↓
+Azure
+    ↓
+Azure Policy
+    ├── Permitido → Resource criado
+    └── Bloqueado → Deploy negado
+</pre>
+
+<h3>Conceitos</h3>
+<table>
+<tr><th>Conceito</th><th>Explicação</th></tr>
+<tr><td>Policy Definition</td><td>A regra em si, escrita em JSON (ex.: "exigir tag X").</td></tr>
+<tr><td>Assignment</td><td>A aplicação da regra a um escopo (Management Group, Subscription ou RG).</td></tr>
+<tr><td>Initiative</td><td>Um conjunto de definições agrupadas, por exemplo "padrões de segurança".</td></tr>
+<tr><td>Compliance</td><td>O painel que mostra quais recursos cumprem ou violam as regras.</td></tr>
+</table>
+
+<h3>Efeitos (o que a policy faz)</h3>
+<table>
+<tr><th>Efeito</th><th>Ação</th><th>Quando usar</th></tr>
+<tr><td>Audit</td><td>Registra a violação, sem bloquear.</td><td>Descobrir o cenário atual antes de impor regras.</td></tr>
+<tr><td>Deny</td><td>Bloqueia a criação ou alteração.</td><td>Regras obrigatórias (ex.: região permitida).</td></tr>
+<tr><td>Modify</td><td>Altera o recurso durante a criação (ex.: adiciona tag).</td><td>Corrigir automaticamente propriedades.</td></tr>
+<tr><td>DeployIfNotExists</td><td>Cria um recurso complementar se ele não existir.</td><td>Ex.: habilitar diagnóstico em todo recurso.</td></tr>
+</table>
+<p>Ordem de uso recomendada: começar com <b>Audit</b>, analisar o Compliance e só depois mudar para <b>Deny</b>.</p>
+
+<h3>Exemplos práticos</h3>
+<div class="grid">
+<div class="card"><b>Tag obrigatória</b><p>"Todas as VMs devem possuir a tag <i>owner</i>." Efeito: Deny ou Modify.</p></div>
+<div class="card"><b>Região restrita</b><p>"Recursos não podem ser criados fora de Brazil South." Efeito: Deny.</p></div>
+<div class="card"><b>Storage privado</b><p>"Storage não pode permitir acesso público." Efeito: Deny.</p></div>
+<div class="card"><b>Configuração de segurança</b><p>"Recursos devem ter diagnóstico habilitado." Efeito: DeployIfNotExists.</p></div>
+</div>
+
+<h3>Onde se encaixa com Terraform</h3>
+<p>Quando o Terraform envia um <i>apply</i>, o Azure avalia cada recurso contra as policies do escopo. Se houver Deny, o erro aparece no plano de execução e o recurso não é criado. Por isso, boas práticas de IaC e Policy andam juntas: o código define o padrão e a Policy garante que ele seja cumprido.</p>
+`}
+
+function tfHTML(){return `
+<h2>Terraform / Infrastructure as Code</h2>
+<p><b>IaC</b> é descrever a infraestrutura em arquivos de código versionados. Em vez de clicar no portal, você declara o que deve existir e a ferramenta cria, altera ou remove os recursos para que a nuvem reflita esse código. <b>Terraform</b> é a ferramenta mais usada para isso, com suporte a várias nuvens.</p>
+
+<h3>Ciclo de vida</h3>
+<pre>
+Código .tf
+   ↓  terraform init     (baixa providers, configura backend)
+   ↓  terraform plan     (compara código × state × nuvem)
+   ↓  terraform apply    (executa as mudanças e atualiza o state)
+   ↓  terraform destroy  (remove o que está no state)
+</pre>
+
+<h3>Blocos principais</h3>
+<table>
+<tr><th>Bloco</th><th>Função</th></tr>
+<tr><td>provider</td><td>Conecta o Terraform a uma plataforma (ex.: azurerm).</td></tr>
+<tr><td>resource</td><td>Um recurso que você quer criar (ex.: VNet, VM).</td></tr>
+<tr><td>variable</td><td>Entrada parametrizável (ex.: região, nome do ambiente).</td></tr>
+<tr><td>locals</td><td>Valores calculados internamente, para não repetir código.</td></tr>
+<tr><td>output</td><td>Valores exportados após o apply (ex.: IP de um recurso).</td></tr>
+<tr><td>module</td><td>Um pacote reutilizável de recursos, como uma função.</td></tr>
+</table>
+
+<h3>Como os blocos se conectam</h3>
+<pre>
+variables.tf ──→ main.tf (resources) ──→ outputs.tf
+                      ↑
+                   locals
+                      ↑
+                 modules/ (reutilizáveis)
+</pre>
+
+<h3>State e Backend</h3>
+<pre>
+Código .tf  ◄──────── compara ────────►  state (terraform.tfstate)
+                                              │
+                                              ▼
+                                       Recursos reais na Azure
+
+Backend local  → state no seu computador (arriscado em equipe)
+Backend remoto → state no Azure Storage, com lock (seguro e compartilhado)
+</pre>
+<div class="note"><b>Remote State:</b> guardar o state em um backend remoto permite que o time inteiro use a mesma visão da infraestrutura, e o <i>lock</i> impede que duas pessoas apliquem ao mesmo tempo.</div>
+
+<h3>Conceitos complementares</h3>
+<ul>
+<li><b>Dependencies:</b> o Terraform monta um grafo de dependências. Ex.: a Subnet só é criada depois da VNet.</li>
+<li><b>Import:</b> traz para o state um recurso que já existe na nuvem, sem recriá-lo.</li>
+<li><b>Workspaces:</b> mantêm states separados para ambientes diferentes (dev, staging, prod) com o mesmo código.</li>
+</ul>
+`}
+
+const $=s=>document.querySelector(s);
+function render(){
+  let k=(location.hash||'#home').slice(1);
+  if(!ROUTES[k])k='home';
+  const r=ROUTES[k];
+  $('#view').innerHTML=r.f();
+  let c='<a href="#home">Início</a>';
+  r.c.forEach(x=>c+=' › '+x);
+  $('#crumbs').innerHTML=c;
+  document.querySelectorAll('.side nav a').forEach(a=>a.classList.toggle('on',a.dataset.r===k));
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+
+$('#q').addEventListener('input',e=>{
+  const t=e.target.value.trim().toLowerCase();
+  const box=$('#res');
+  if(!t){box.innerHTML='';return;}
+  const hits=IDX.filter(i=>(i.t+' '+i.k).toLowerCase().includes(t));
+  box.innerHTML=hits.length?hits.map(h=>`<a href="#${h.r}">${h.t}</a>`).join(''):'<p style="font-size:13px;color:var(--mut)">Nenhum resultado.</p>';
+});
+
+render();
+</script>
+</body>
+</html>
